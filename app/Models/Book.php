@@ -9,17 +9,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Book extends Model
 {
     use HasFactory;
-    /**
-     * Get the author that owns the book.
-     */
+
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+
     public function author(): BelongsTo
     {
         return $this->belongsTo(Author::class);
     }
 
-    /**
-     * Get the category that owns the book.
-     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

@@ -9,11 +9,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Author extends Model
 {
     use HasFactory;
-    /**
-     * Get the books for the author.
-     */
+
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+        'updated_at' => 'datetime:Y-m-d H:i:s',
+    ];
+
     public function books(): HasMany
     {
         return $this->hasMany(Book::class);
     }
+    
 }

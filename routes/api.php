@@ -1,10 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BookController;
 
-Route::get('/books', function () {
-    return response()->json([
-        'success' => true,
-        'message' => 'Ok'
-    ], 200);
-});
+Route::get('/books', [BookController::class, 'getBooks']);
