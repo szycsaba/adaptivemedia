@@ -25,4 +25,15 @@ class BookRepository implements BookRepositoryInterface
             ->findOrFail($book->id)
             ->toArray();
     }
+
+    public function getBookById(int $id): ?array
+    {
+        $book = Book::with(['author', 'category'])->find($id);
+
+        if ($book === null) {
+            return null;
+        }
+
+        return $book->toArray();
+    }
 }

@@ -28,4 +28,15 @@ class BookController extends Controller
             $response->status
         );
     }
+
+    public function getBookById(int $id, BookService $bookService): JsonResponse
+    {
+        $response = $bookService->getBookById($id);
+
+        return response()->json(
+            $response->toArray(),
+            $response->status
+        );
+    }
+
 }

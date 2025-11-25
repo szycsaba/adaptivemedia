@@ -8,7 +8,7 @@ class BookResource extends JsonResource
 {
     public function toArray($request): array
     {
-        return [
+        $result = [
             'id' => $this['id'],
             'title' => $this['title'],
             'author_id' => $this['author_id'],
@@ -20,5 +20,11 @@ class BookResource extends JsonResource
             'created_at' => $this['created_at'],
             'updated_at' => $this['updated_at'],
         ];
+
+        if(isset($this['price_eur'])) {
+            $result['price_eur'] = $this['price_eur'];
+        }
+
+        return $result;
     }
 }
