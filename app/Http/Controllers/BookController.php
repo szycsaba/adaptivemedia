@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AddBookRequest;
+use App\Http\Requests\GetBookRequest;
 use App\Services\BookService;
 use Illuminate\Http\JsonResponse;
 
@@ -29,8 +30,9 @@ class BookController extends Controller
         );
     }
 
-    public function getBookById(int $id, BookService $bookService): JsonResponse
+    public function getBookById(GetBookRequest $request, BookService $bookService): JsonResponse
     {
+        $id = (int) $request->validated()['id'];
         $response = $bookService->getBookById($id);
 
         return response()->json(
