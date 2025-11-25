@@ -96,4 +96,18 @@ class BookService
             return new ServiceResponse(false, 'An error occurred while fetching book by id', null, 500);
         }
     }
+
+    public function searchBooks(string $query): ServiceResponse
+    {
+        try {
+            $books = $this->repo->searchBooks($query);
+
+            $resource = BookResource::collection($books)->toArray(request());
+
+            return new ServiceResponse(true, 'Books search completed successfully', $resource, 200);
+        } catch (QueryException $e) {
+            Log::error('An error occurred while searching books: ' . $e->getMessage());
+            return new ServiceResponse(false, 'An error occurred while searching books', null, 500);
+        }
+    }
 }

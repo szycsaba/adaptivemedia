@@ -21,10 +21,6 @@ return new class extends Migration
             $table->timestamps();
             
             // Indexes
-            $table->index('title');
-            $table->index(['category_id', 'price_huf']);
-            $table->index('price_huf');
-
             $table->unique(['title', 'author_id']);
         });
     }

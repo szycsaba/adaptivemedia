@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Book;
+use Illuminate\Support\Facades\DB;
 
 class BookRepository implements BookRepositoryInterface
 {
@@ -35,5 +36,19 @@ class BookRepository implements BookRepositoryInterface
         }
 
         return $book->toArray();
+    }
+
+    public function searchBooks(string $query): array
+    {
+        return Book::with(['author', 'category'])
+            ->where('title', 'LIKE', "%{$query}%")
+            ->orWhereHas('author', function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%");
+            })
+            ->orWhereHas('category', function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%");
+            })
+            ->get()
+            ->toArray();
     }
 }
