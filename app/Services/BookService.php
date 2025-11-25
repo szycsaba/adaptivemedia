@@ -6,6 +6,7 @@ use App\DTO\ServiceResponse;
 use App\Http\Resources\BookResource;
 use App\Repositories\BookRepositoryInterface;
 use App\Services\Exchange\ExchangeRateClientInterface;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
@@ -20,18 +21,16 @@ class BookService
     public function getBooks(): ServiceResponse
     {
         try {
-            return DB::transaction(function () {
-                $books = $this->repo->getBooks();
+            $books = $this->repo->getBooks();
 
-                $resource = BookResource::collection($books)->toArray(request());
+            $resource = BookResource::collection($books)->toArray(request());
 
-                return new ServiceResponse(
-                    success: true,
-                    message: 'Books listed successfully',
-                    data: $resource,
-                    status: 200
-                );
-            });
+            return new ServiceResponse(
+                success: true,
+                message: 'Books listed successfully',
+                data: $resource,
+                status: 200
+            );
         } catch (QueryException $e) {
             Log::error('An error occurred while fetching books: ' . $e->getMessage());
             return new ServiceResponse(
@@ -45,18 +44,21 @@ class BookService
     public function addBook(array $params): ServiceResponse
     {
         try {
-            return DB::transaction(function () use ($params) {
-                $book = $this->repo->addBook($params);
+            $book = $this->repo->addBook($params);
 
-                $resource = (new BookResource($book))->toArray(request());
+            // Invalidate relevant caches
+            Cache::forget('popular_categories');
+            Cache::forget('top_fantasy_scifi_books');
+            Cache::forget("book:{$book['id']}");
 
-                return new ServiceResponse(
-                    success: true,
-                    message: 'Book created successfully',
-                    data: $resource,
-                    status: 201
-                );
-            });
+            $resource = (new BookResource($book))->toArray(request());
+
+            return new ServiceResponse(
+                success: true,
+                message: 'Book created successfully',
+                data: $resource,
+                status: 201
+            );
         } catch (QueryException $e) {
             Log::error('An error occurred while creating book: ' . $e->getMessage());
             return new ServiceResponse(
@@ -70,7 +72,11 @@ class BookService
     public function getBookById(int $id): ServiceResponse
     {
         try {
-            $book = $this->repo->getBookById($id);
+            $cacheKey = "book:{$id}";
+            
+            $book = Cache::remember($cacheKey, now()->addHours(2), function () use ($id) {
+                return $this->repo->getBookById($id);
+            });
 
             if ($book === null) {
                 return new ServiceResponse(
@@ -163,7 +169,11 @@ class BookService
     public function getPopularCategories(): ServiceResponse
     {
         try {
-            $data = $this->repo->getPopularCategories();
+            $cacheKey = 'popular_categories';
+            
+            $data = Cache::remember($cacheKey, now()->addHours(2), function () {
+                return $this->repo->getPopularCategories();
+            });
 
             return new ServiceResponse(
                 success: true, 
@@ -185,7 +195,12 @@ class BookService
     public function getTopFantasyAndSciFiBooks(): ServiceResponse
     {
         try {
-            $data = $this->repo->getTopFantasyAndSciFiBooks();
+            $cacheKey = 'top_fantasy_scifi_books';
+            
+            $data = Cache::remember($cacheKey, now()->addMinutes(30), function () {
+                return $this->repo->getTopFantasyAndSciFiBooks();
+            });
+            
             $resource = BookResource::collection($data)->toArray(request());
     
             return new ServiceResponse(

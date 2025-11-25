@@ -54,10 +54,10 @@ class BookRepository implements BookRepositoryInterface
 
     public function getExpensiveBooks(): array
     {
-        $avg = DB::table('books')->avg('price_huf');
-
         return Book::with(['author', 'category'])
-            ->where('price_huf', '>', $avg)
+            ->where('price_huf', '>', function($query) {
+                $query->selectRaw('AVG(price_huf)')->from('books');
+            })
             ->get()
             ->toArray();
     }
@@ -80,13 +80,10 @@ class BookRepository implements BookRepositoryInterface
 
     public function getTopFantasyAndSciFiBooks(): array
     {
-        $categoryIds = DB::table('categories')
-            ->whereIn('name', ['Fantasy', 'Science Fiction'])
-            ->pluck('id')
-            ->toArray();
-
         return Book::with(['author', 'category'])
-            ->whereIn('category_id', $categoryIds)
+            ->whereHas('category', function($q) {
+                $q->whereIn('name', ['Fantasy', 'Science Fiction']);
+            })
             ->orderByDesc('price_huf')
             ->limit(3)
             ->get()
