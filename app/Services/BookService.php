@@ -77,10 +77,9 @@ class BookService
             }
 
             $priceHuf = (int) $book['price_huf'];
-            $priceEur = null;
 
             try {
-                $priceEur = $this->exchange->convertHufToEur($priceHuf);
+                $priceEur = $this->exchange->convert('HUF', 'EUR', $priceHuf);
             } catch (Throwable $e) {
                 Log::warning('EUR conversion failed: '.$e->getMessage());
             }

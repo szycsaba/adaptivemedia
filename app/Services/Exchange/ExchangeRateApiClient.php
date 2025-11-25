@@ -2,59 +2,59 @@
 
 namespace App\Services\Exchange;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
+use Illuminate\Support\Facades\Cache;
 
 class ExchangeRateApiClient implements ExchangeRateClientInterface
 {
     private string $baseUrl;
     private string $apiKey;
-    private string $baseCurrency;
+    private string $caCert;
 
     public function __construct()
     {
         $this->baseUrl = config('exchange.base_url');
-        $this->apiKey = config('exchange.api_key');
-        $this->baseCurrency = config('exchange.base_currency', 'HUF');
+        $this->apiKey  = config('exchange.api_key');
+        $this->caCert  = config('exchange.ca_cert');
+    }
 
-        if ($this->baseUrl === '' || $this->apiKey === '' || $this->baseCurrency === '') {
-            throw new RuntimeException('Exchange API configuration is missing.');
+
+    public function convert(string $from, string $to, float $amount): float
+    {
+        $rates = $this->getRatesFor($from);
+
+        if (!isset($rates[$to])) {
+            throw new \RuntimeException("Cannot convert from {$from} to {$to}");
         }
+
+        return round($amount * $rates[$to], 2);
     }
 
-    public function convertHufToEur(int $amountHuf): float
+    public function getRatesFor(string $baseCurrency): array
     {
-        $rate = $this->getEurRate();
-        return round($amountHuf * $rate, 2);
-    }
+        return Cache::remember(
+            "exchange_rates_{$baseCurrency}",
+            now()->addHours(1),
+            function () use ($baseCurrency) {
 
-    private function getEurRate(): float
-    {
-        $cacheKey = 'eur_rate_from_' . $this->baseCurrency;
+                $url = "{$this->baseUrl}/{$this->apiKey}/latest/{$baseCurrency}";
 
-        return Cache::remember($cacheKey, now()->addHour(), function () {
-            $url = $this->baseUrl . '/' . $this->apiKey . '/latest/' . $this->baseCurrency;
+                $response = Http::withOptions([
+                    'verify' => $this->caCert,
+                ])->get($url);
 
-            $response = Http::withOptions([
-                'verify' => config('exchange.ca_cert')
-            ])->get($url);
+                if (!$response->successful()) {
+                    throw new \RuntimeException("Exchange API error: {$response->status()}");
+                }
 
-            if ($response->failed()) {
-                throw new RuntimeException('Failed to fetch exchange rates.');
+                $json = $response->json();
+
+                if (!isset($json['result']) || $json['result'] !== 'success') {
+                    throw new \RuntimeException("Invalid response from exchange API");
+                }
+
+                return $json['conversion_rates'] ?? [];
             }
-
-            $data = $response->json();
-
-            if (!isset($data['result']) || $data['result'] !== 'success') {
-                throw new RuntimeException('Exchange API returned an unexpected response.');
-            }
-
-            if (!isset($data['conversion_rates']['EUR'])) {
-                throw new RuntimeException('EUR rate not found in API response.');
-            }
-
-            return (float) $data['conversion_rates']['EUR'];
-        });
+        );
     }
 }
