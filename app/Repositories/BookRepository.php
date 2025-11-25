@@ -51,4 +51,45 @@ class BookRepository implements BookRepositoryInterface
             ->get()
             ->toArray();
     }
+
+    public function getExpensiveBooks(): array
+    {
+        $avg = DB::table('books')->avg('price_huf');
+
+        return Book::with(['author', 'category'])
+            ->where('price_huf', '>', $avg)
+            ->get()
+            ->toArray();
+    }
+
+    public function getPopularCategories(): array
+    {
+        return DB::table('categories')
+            ->join('books', 'books.category_id', '=', 'categories.id')
+            ->select(
+                'categories.name',
+                DB::raw('COUNT(books.id) as book_count'),
+                DB::raw('ROUND(AVG(books.price_huf), 2) as avg_price_huf')
+            )
+            ->groupBy('categories.id', 'categories.name')
+            ->orderByDesc('book_count')
+            ->limit(3)
+            ->get()
+            ->toArray();
+    }
+
+    public function getTopFantasyAndSciFiBooks(): array
+    {
+        $categoryIds = DB::table('categories')
+            ->whereIn('name', ['Fantasy', 'Science Fiction'])
+            ->pluck('id')
+            ->toArray();
+
+        return Book::with(['author', 'category'])
+            ->whereIn('category_id', $categoryIds)
+            ->orderByDesc('price_huf')
+            ->limit(3)
+            ->get()
+            ->toArray();
+    }
 }

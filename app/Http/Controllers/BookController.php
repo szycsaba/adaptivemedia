@@ -15,20 +15,14 @@ class BookController extends Controller
     {
         $response = $bookService->getBooks();
 
-        return response()->json(
-            $response->toArray(),
-            $response->status
-        );
+        return response()->json($response->toArray(), $response->status);
     }
 
     public function addBook(AddBookRequest $request, BookService $bookService): JsonResponse
     {
         $response = $bookService->addBook($request->validated());
 
-        return response()->json(
-            $response->toArray(),
-            $response->status
-        );
+        return response()->json($response->toArray(), $response->status);
     }
 
     public function getBookById(GetBookRequest $request, BookService $bookService): JsonResponse
@@ -36,10 +30,7 @@ class BookController extends Controller
         $id = (int) $request->validated()['id'];
         $response = $bookService->getBookById($id);
 
-        return response()->json(
-            $response->toArray(),
-            $response->status
-        );
+        return response()->json($response->toArray(), $response->status);
     }
 
     public function searchBooks(SearchBooksRequest $request, BookService $bookService): JsonResponse
@@ -47,10 +38,28 @@ class BookController extends Controller
         $query = $request->validated()['query'];
         $response = $bookService->searchBooks($query);
 
-        return response()->json(
-            $response->toArray(),
-            $response->status
-        );
+        return response()->json($response->toArray(), $response->status);
+    }
+
+    public function getExpensiveBooks(BookService $bookService): JsonResponse
+    {
+        $response = $bookService->getExpensiveBooks();
+
+        return response()->json($response->toArray(), $response->status);
+    }
+
+    public function getPopularCategories(BookService $bookService): JsonResponse
+    {
+        $response = $bookService->getPopularCategories();
+
+        return response()->json($response->toArray(), $response->status);
+    }
+
+    public function getTopFantasyAndSciFiBooks(BookService $bookService): JsonResponse
+    {
+        $response = $bookService->getTopFantasyAndSciFiBooks();
+
+        return response()->json($response->toArray(), $response->status);
     }
 
 }

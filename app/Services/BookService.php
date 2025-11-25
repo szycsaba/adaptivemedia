@@ -73,7 +73,12 @@ class BookService
             $book = $this->repo->getBookById($id);
 
             if ($book === null) {
-                return new ServiceResponse(false, 'Book not found', null, 404);
+                return new ServiceResponse(
+                    success: false, 
+                    message: 'Book not found', 
+                    data: null, 
+                    status: 404
+                );
             }
 
             $priceHuf = (int) $book['price_huf'];
@@ -90,10 +95,20 @@ class BookService
 
             $resource = (new BookResource($book))->toArray(request());
 
-            return new ServiceResponse(true, 'Book retrieved successfully', $resource, 200);
+            return new ServiceResponse(
+                success: true, 
+                message: 'Book retrieved successfully', 
+                data: $resource, 
+                status: 200
+            );
         } catch (QueryException $e) {
             Log::error('An error occurred while fetching book by id: ' . $e->getMessage());
-            return new ServiceResponse(false, 'An error occurred while fetching book by id', null, 500);
+            return new ServiceResponse(
+                success: false, 
+                message: 'An error occurred while fetching book by id', 
+                data: null, 
+                status: 500
+            );
         }
     }
 
@@ -104,10 +119,89 @@ class BookService
 
             $resource = BookResource::collection($books)->toArray(request());
 
-            return new ServiceResponse(true, 'Books search completed successfully', $resource, 200);
+            return new ServiceResponse(
+                success: true,
+                message: 'Books search completed successfully',
+                data: $resource,
+                status: 200
+            );
         } catch (QueryException $e) {
             Log::error('An error occurred while searching books: ' . $e->getMessage());
-            return new ServiceResponse(false, 'An error occurred while searching books', null, 500);
+            return new ServiceResponse(
+                success: false, 
+                message: 'An error occurred while searching books', 
+                data: null, 
+                status: 500
+            );
+        }
+    }
+
+    public function getExpensiveBooks(): ServiceResponse
+    {
+        try {
+            $books = $this->repo->getExpensiveBooks();
+            $resource = BookResource::collection($books)->toArray(request());
+    
+            return new ServiceResponse(
+                success: true, 
+                message: 'Books above average price retrieved successfully', 
+                data: $resource, 
+                status: 200
+            );
+        } catch (QueryException $e) {
+            Log::error('Error while fetching expensive books: ' . $e->getMessage());
+    
+            return new ServiceResponse(
+                success: false,
+                message: 'Error while fetching expensive books',
+                data: null,
+                status: 500
+            );
+        }
+    }
+
+    public function getPopularCategories(): ServiceResponse
+    {
+        try {
+            $data = $this->repo->getPopularCategories();
+
+            return new ServiceResponse(
+                success: true, 
+                message: 'Popular categories retrieved successfully', 
+                data: $data, 
+                status: 200
+            );
+        } catch (QueryException $e) {
+            Log::error('Error fetching popular categories: '.$e->getMessage());
+            return new ServiceResponse(
+                success: false, 
+                message: 'Unable to fetch popular categories', 
+                data: null, 
+                status: 500
+            );
+        }
+    }
+
+    public function getTopFantasyAndSciFiBooks(): ServiceResponse
+    {
+        try {
+            $data = $this->repo->getTopFantasyAndSciFiBooks();
+            $resource = BookResource::collection($data)->toArray(request());
+    
+            return new ServiceResponse(
+                success: true, 
+                message: 'Top Fantasy & Sci-Fi books retrieved successfully', 
+                data: $resource, 
+                status: 200
+            );
+        } catch (QueryException $e) {
+            Log::error('Error fetching top fantasy and sci-fi: '.$e->getMessage());
+            return new ServiceResponse(
+                success: false, 
+                message: 'Unable to fetch data', 
+                data: null, 
+                status: 500
+            );
         }
     }
 }
