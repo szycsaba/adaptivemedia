@@ -418,29 +418,6 @@ $this->app->bind(
 - Cache-elt végpontok: ~90% gyorsabb válaszidő
 - Query optimalizálások: ~50% kevesebb adatbázis terhelés
 
-## 🧪 Tesztelés
-
-```bash
-php artisan test
-```
-
-## 🔧 Fejlesztés
-
-### Code Style
-```bash
-./vendor/bin/pint
-```
-
-### Logok megtekintése
-```bash
-tail -f storage/logs/laravel.log
-```
-
-### Cache törlése
-```bash
-php artisan cache:clear
-```
-
 ## 📝 Adatbázis séma
 
 ### Books tábla
@@ -465,11 +442,3 @@ php artisan cache:clear
 - SQL injection védelem (Eloquent ORM)
 - XSS védelem (automatikus escaping)
 - Standardizált hibakezelés
-
-## 📄 Licenc
-
-MIT License
-
-## 👥 Közreműködés
-
-A projekt nyitott a közreműködésre. Kérjük, először nyiss egy issue-t a változtatásról, mielőtt pull request-et nyitnál.
